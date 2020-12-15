@@ -4,20 +4,21 @@ var Connection = require("tedious").Connection;
 
 // Create connection to database
 var config = {
-  server: "localhost",
+  server: "db",
   authentication: {
     type: "default",
     options: {
       userName: "sa",
-      password: "shokoman12345"
-    }
+      password: "YourStrong@Passw0rd",
+    },
   },
   options: {
-    encrypt: false,
-    database: "LABA2ZRP",
+    database: "laba2zrp",
     validateBulkLoadParameters: false,
+    //instanceName: "MSSQLSERVER02",
+    encrypt: false,
     rowCollectionOnRequestCompletion: true
-  }
+  },
 };
 
 var connection = new Connection(config);
@@ -35,8 +36,8 @@ connection.on("connect", function (err) {
   }
 });
 
-function Get(id, responsee) {
-  console.log("Reading rows from the Table Students...");
+function Get(id, responsee, requeste) {
+  console.log("Reading rows from the Table Groups...");
 
   request1 = new Request(
     `SELECT IdFaculty, IdGroup, Name, Course FROM LABA2ZRPschema.Groups
@@ -46,12 +47,21 @@ function Get(id, responsee) {
       if (err) {
         console.log(err);
       } else {
-        console.log("callback in request: " + rowCount + " row(s) returned");
-        responsee.render("groups", {
-          title: "Groups",
-          rows: rows,
-          id: id
-        });
+        console.log(rowCount + " row(s) returned");
+        if (requeste.header("dima") == "sad") {
+          let glek = [];
+          rows.map((row, index) => {
+            glek[index] = [];
+            row.map((col) => (glek[index] = [col.value, ...glek[index]]));
+          });
+          responsee.json({ groups: glek });
+        } else {
+          responsee.render("groups", {
+            title: "Groups",
+            rows: rows,
+            id: id
+          });
+        }
       }
     }
   );
@@ -74,7 +84,7 @@ function Get(id, responsee) {
   connection.execSql(request1);
 }
 
-function Create(id, name, course, responsee) {
+function Create(id, name, course, responsee, requeste) {
   console.log("Inserting '" + name + "' into Group Table...");
 
   request = new Request(
@@ -85,12 +95,20 @@ function Create(id, name, course, responsee) {
       if (err) {
         console.log(err);
       } else {
-        console.log(rowCount + " row(s) inserted");
-        responsee.render("groups", {
-          title: "Groups",
-          rows: rows,
-          id: id
-        });
+        if (requeste.header("dima") == "sad") {
+          let glek = [];
+          rows.map((row, index) => {
+            glek[index] = [];
+            row.map((col) => (glek[index] = [col.value, ...glek[index]]));
+          });
+          responsee.json({ groups: glek });
+        } else {
+          responsee.render("groups", {
+            title: "Groups",
+            rows: rows,
+            id: id
+          });
+        }
       }
     }
   );
@@ -102,7 +120,7 @@ function Create(id, name, course, responsee) {
   connection.execSql(request);
 }
 
-function Delete(fakId, groupId, responsee) {
+function Delete(fakId, groupId, responsee, requeste) {
   console.log("Deleting '" + groupId + "' from Table Groups...");
   // DELETE FROM LABA2ZRPschema.Students
   // WHERE IdGroup = @IdGroup;
@@ -117,12 +135,20 @@ function Delete(fakId, groupId, responsee) {
       if (err) {
         console.log(err);
       } else {
-        console.log(rowCount + " row(s) deleted");
-        responsee.render("groups", {
-          title: "Groups",
-          rows: rows,
-          id: fakId
-        });
+        if (requeste.header("dima") == "sad") {
+          let glek = [];
+          rows.map((row, index) => {
+            glek[index] = [];
+            row.map((col) => (glek[index] = [col.value, ...glek[index]]));
+          });
+          responsee.json({ groups: glek });
+        } else {
+          responsee.render("groups", {
+            title: "Groups",
+            rows: rows,
+            id: fakId
+          });
+        }
       }
     }
   );
@@ -133,7 +159,7 @@ function Delete(fakId, groupId, responsee) {
   connection.execSql(request);
 }
 
-function Update(idFak, idGroup, name, course, responsee) {
+function Update(idFak, idGroup, name, course, responsee, requeste) {
   console.log("Updating group to '" + name + "' for '" + course + "'...");
 
   // Update the fak record requested
@@ -148,12 +174,20 @@ function Update(idFak, idGroup, name, course, responsee) {
       if (err) {
         console.log(err);
       } else {
-        console.log(rowCount + " row(s) updated");
-        responsee.render("groups", {
-          title: "Groups",
-          rows: rows,
-          id: idFak
-        });
+        if (requeste.header("dima") == "sad") {
+          let glek = [];
+          rows.map((row, index) => {
+            glek[index] = [];
+            row.map((col) => (glek[index] = [col.value, ...glek[index]]));
+          });
+          responsee.json({ groups: glek });
+        } else {
+          responsee.render("groups", {
+            title: "Groups",
+            rows: rows,
+            id: idFak
+          });
+        }
       }
     }
   );

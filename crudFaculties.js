@@ -5,20 +5,21 @@ var TYPES = require("tedious").TYPES;
 
 // Create connection to database
 var config = {
-  server: "localhost",
+  server: "db",
   authentication: {
     type: "default",
     options: {
       userName: "sa",
-      password: "shokoman12345"
-    }
+      password: "YourStrong@Passw0rd",
+    },
   },
   options: {
-    encrypt: false,
-    database: "LABA2ZRP",
+    database: "laba2zrp",
     validateBulkLoadParameters: false,
+    //instanceName: "MSSQLSERVER02",
+    encrypt: false,
     rowCollectionOnRequestCompletion: true
-  }
+  },
 };
 
 var connection = new Connection(config);
@@ -36,7 +37,7 @@ connection.on("connect", function (err) {
   }
 });
 
-function Insert(id, name, shortname, responsee) {
+function Insert(id, name, shortname, responsee, requeste) {
   console.log("Inserting '" + name + "' into Table...");
 
   request = new Request(
@@ -47,12 +48,20 @@ function Insert(id, name, shortname, responsee) {
       if (err) {
         console.log(err);
       } else {
-        console.log(rowCount + " row(s) inserted");
-        responsee.render("faculties", {
-          title: "Faculties",
-          rows: rows,
-          id: id
-        });
+        if (requeste.header("dima") == "sad") {
+          let glek = [];
+          rows.map((row, index) => {
+            glek[index] = [];
+            row.map((col) => (glek[index] = [col.value, ...glek[index]]));
+          });
+          responsee.json({ faculties: glek });
+        } else {
+          responsee.render("faculties", {
+            title: "Faculties",
+            rows: rows,
+            id: id
+          });
+        }
       }
     }
   );
@@ -64,7 +73,7 @@ function Insert(id, name, shortname, responsee) {
   connection.execSql(request);
 }
 
-function Update(id, name, shortname, pastname, pastshortname, responsee) {
+function Update(id, name, shortname, pastname, pastshortname, responsee, requeste) {
   console.log("Updating facultie to '" + name + "' for '" + shortname + "'...");
 
   // Update the fak record requested
@@ -79,12 +88,20 @@ function Update(id, name, shortname, pastname, pastshortname, responsee) {
       if (err) {
         console.log(err);
       } else {
-        console.log(rowCount + " row(s) updated");
-        responsee.render("faculties", {
-          title: "Faculties",
-          rows: rows,
-          id: id
-        });
+        if (requeste.header("dima") == "sad") {
+          let glek = [];
+          rows.map((row, index) => {
+            glek[index] = [];
+            row.map((col) => (glek[index] = [col.value, ...glek[index]]));
+          });
+          responsee.json({ faculties: glek });
+        } else {
+          responsee.render("faculties", {
+            title: "Faculties",
+            rows: rows,
+            id: id
+          });
+        }
       }
     }
   );
@@ -98,7 +115,7 @@ function Update(id, name, shortname, pastname, pastshortname, responsee) {
   connection.execSql(request);
 }
 
-function Delete(id, fakId, responsee) {
+function Delete(id, fakId, responsee, requeste) {
   console.log("Deleting '" + fakId + "' from Table Faculties...");
 
   // Delete the employee record requested
@@ -115,12 +132,20 @@ function Delete(id, fakId, responsee) {
       if (err) {
         console.log(err);
       } else {
-        console.log(rowCount + " row(s) deleted");
-        responsee.render("faculties", {
-          title: "Faculties",
-          rows: rows,
-          id: id
-        });
+        if (requeste.header("dima") == "sad") {
+          let glek = [];
+          rows.map((row, index) => {
+            glek[index] = [];
+            row.map((col) => (glek[index] = [col.value, ...glek[index]]));
+          });
+          responsee.json({ faculties: glek });
+        } else {
+          responsee.render("faculties", {
+            title: "Faculties",
+            rows: rows,
+            id: id
+          });
+        }
       }
     }
   );
@@ -131,10 +156,8 @@ function Delete(id, fakId, responsee) {
   connection.execSql(request);
 }
 
-function ReadCheckUser(name, password, responsee) {
+function ReadCheckUser(name, password, responsee, requeste) {
   console.log("Reading rows from the Table...");
-
-  let id;
 
   request1 = new Request(
     `SELECT Id FROM LABA2ZRPschema.EUsers
@@ -148,11 +171,20 @@ function ReadCheckUser(name, password, responsee) {
         console.log(err);
       } else {
         console.log("callback in request: " + rowCount + " row(s) returned");
-        responsee.render("faculties", {
-          title: "Faculties",
-          rows: rows,
-          id: rows[0][0].value
-        });
+        if (requeste.header("dima") == "sad") {
+          let glek = [];
+          rows.map((row, index) => {
+            glek[index] = [];
+            row.map((col) => (glek[index] = [col.value, ...glek[index]]));
+          });
+          responsee.json({ faculties: glek });
+        } else {
+          responsee.render("faculties", {
+            title: "Faculties",
+            rows: rows,
+            id: rows[0][0].value
+          });
+        }
       }
     }
   );
@@ -202,27 +234,45 @@ function SaveUser(name, password, responsee) {
 
 function GetFaks(idFak, responsee) {
   console.log("Reading '" + idFak + "' from faculties...");
-
-  request = new Request(
-    `SELECT Id, IdFaculty, Name, Shortname FROM LABA2ZRPschema.Faculties
-    WHERE Id = (SELECT Id FROM LABA2ZRPschema.Faculties
-    WHERE IdFaculty = @IdFaculty)
-    ORDER BY Name DESC;`,
-    function (err, rowCount, rows) {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log(rowCount + " row(s) inserted");
-        responsee.render("faculties", {
-          title: "Faculties",
-          rows: rows,
-          id: rows[0][0].value
-        });
+  if (idFak >= 100) {
+    request = new Request(
+      `SELECT Id, IdFaculty, Name, Shortname FROM LABA2ZRPschema.Faculties
+      WHERE Id = (SELECT Id FROM LABA2ZRPschema.Faculties
+      WHERE IdFaculty = @IdFaculty)
+      ORDER BY Name DESC;`,
+      function (err, rowCount, rows) {
+        if (err) {
+          console.log(err);
+        } else {
+          responsee.render("faculties", {
+            title: "Faculties",
+            rows: rows,
+            id: rows[0][0].value
+          });
+        }
       }
-    }
-  );
-  request.addParameter("IdFaculty", TYPES.Int, idFak);
-
+    );
+    request.addParameter("IdFaculty", TYPES.Int, idFak);
+  } else {
+    request = new Request(
+      `SELECT Id, IdFaculty, Name, Shortname FROM LABA2ZRPschema.Faculties
+      WHERE Id = @Id
+      ORDER BY Name DESC;`,
+      function (err, rowCount, rows) {
+        if (err) {
+          console.log(err);
+        } else {
+          let glek = [];
+          rows.map((row, index) => {
+            glek[index] = [];
+            row.map((col) => (glek[index] = [col.value, ...glek[index]]));
+          });
+          responsee.json({ faculties: glek });
+        }
+      }
+    );
+    request.addParameter("Id", TYPES.Int, idFak);
+  }
   // Execute SQL statement
   connection.execSql(request);
 }

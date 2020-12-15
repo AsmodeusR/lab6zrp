@@ -10,6 +10,10 @@ var studentsRouter = require("./routes/students");
 
 var app = express();
 
+// const swaggerUi = require('swagger-ui-express');
+// const swaggerDocument = require('./swagger.json');
+const swaggerSpec = require("./swaggerJSdoc");
+const swaggerUi = require("swagger-ui-express");
 // var Connection = require('tedious').Connection;
 
 // // var async = require('async');
@@ -27,6 +31,8 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/groups/students", studentsRouter);
 app.use("/groups", groupsRouter);
+// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/", indexRouter);
 
 // catch 404 and forward to error handler
